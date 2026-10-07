@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Nagarmal Sheonarain – Outfit Price Tracker</title>
+  <meta name="theme-color" content="#1a1209" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #b8922a;
+      --gold-light: #e8c96e;
+      --gold-pale: #f7f0dc;
+      --dark: #1a1209;
+      --cream: #fdf8ef;
+      --text: #3a2e1a;
+      --text-muted: #7a6b52;
+      --border: rgba(184,146,42,0.25);
+      --border-focus: rgba(184,146,42,0.7);
+      --white: #ffffff;
+      --error: #c0392b;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--cream);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px 60px;
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(184,146,42,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(184,146,42,0.06) 0%, transparent 60%);
+    }
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      width: 180px; height: 180px;
+      border: 1.5px solid rgba(184,146,42,0.18);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+    body::after  { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 8px 40px rgba(184,146,42,0.12), 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) both;
+      transition: max-width 0.4s ease;
+    }
+    .card.wide { max-width: 1100px; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .top-bar {
+      height: 4px;
+      background: linear-gradient(90deg, #b8922a 0%, #e8c96e 50%, #b8922a 100%);
+      background-size: 200% 100%;
+      animation: shimmer 3s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* HEADER */
+    .header {
+      padding: 36px 40px 24px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 50%; transform: translateX(-50%);
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .logo-img {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      object-fit: contain;
+      background: var(--cream);
+      border: 2px solid var(--border);
+      padding: 6px;
+      display: block;
+      margin: 0 auto 15px;
+    }
+    .header-eyebrow {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 6px;
+    }
+    .header-tagline {
+      font-size: 10px; font-weight: 500; letter-spacing: 0.15em;
+      color: var(--text-muted); text-transform: uppercase; margin-bottom: 15px;
+    }
+    .header-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; font-weight: 700; color: var(--dark);
+      letter-spacing: 0.02em; line-height: 1.1; margin-bottom: 10px;
+    }
+    .header-sub {
+      font-size: 13.5px; font-weight: 300; color: var(--text-muted);
+      line-height: 1.65; max-width: 320px; margin: 0 auto;
+    }
+
+    /* TABS */
+    .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--cream); }
+    .tab-btn {
+      flex: 1; background: none; border: none; padding: 16px 10px;
+      font-family: 'Jost', sans-serif; font-size: 11.5px; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted);
+      cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.25s;
+    }
+    .tab-btn:hover { color: var(--gold); }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: var(--white); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.35s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* DIVIDER */
+    .divider { display: flex; align-items: center; gap: 10px; margin: 0 40px; padding-top: 24px; }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+    /* FORM */
+    .form-body { padding: 24px 40px 36px; }
+    .field { margin-bottom: 22px; }
+    .field label.main-label {
+      display: block; font-size: 10.5px; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 8px;
+    }
+    .req { color: var(--error); margin-left: 2px; }
+
+    .field input[type="number"], .field input[type="file"], .filter-field input {
+      width: 100%; padding: 0 14px; font-family: 'Jost', sans-serif; font-size: 14px;
+      color: var(--text); background: var(--cream); border: 1px solid var(--border);
+      border-radius: 3px; outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s, background 0.2s;
+    }
+    .field input[type="number"], .filter-field input { height: 46px; }
+    .field input[type="file"] { padding: 10px; font-size: 13px; background: var(--white); }
+    .field input::placeholder, .filter-field input::placeholder { color: rgba(122,107,82,0.5); }
+    .field input:focus, .filter-field input:focus {
+      border-color: var(--border-focus); background: var(--white);
+      box-shadow: 0 0 0 3px rgba(184,146,42,0.1);
+    }
+
+    .price-wrap { display: flex; }
+    .price-prefix {
+      display: flex; align-items: center; padding: 0 14px; background: var(--gold-pale);
+      border: 1px solid var(--border); border-right: none; border-radius: 3px 0 0 3px;
+      font-size: 14px; font-weight: 600; color: var(--gold); flex-shrink: 0;
+    }
+    .price-wrap input { border-radius: 0 3px 3px 0 !important; }
+
+    .image-preview {
+      display: none; margin-top: 12px; width: 150px; height: 150px; object-fit: cover;
+      border-radius: 3px; border: 1px solid var(--border); padding: 4px; background: var(--cream);
+    }
+
+    .btn-submit {
+      display: block; width: 100%; height: 52px; margin-top: 30px; background: var(--dark);
+      color: var(--gold-light); border: none; border-radius: 3px; font-family: 'Jost', sans-serif;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.25em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #2a1f0a; }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(232,201,110,0.3);
+      border-top-color: var(--gold-light); border-radius: 50%; animation: spin 0.6s linear infinite;
+      vertical-align: -2px; margin-right: 8px;
+    }
+    .spinner.dark { border-color: rgba(184,146,42,0.25); border-top-color: var(--gold); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* DASHBOARD */
+    .dash-body { padding: 24px 40px 36px; }
+    .filters-bar {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px; margin-bottom: 20px; padding: 16px; background: var(--cream);
+      border: 1px solid var(--border); border-radius: 3px; align-items: end;
+    }
+    .filter-field label {
+      display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+    }
+    .btn-refresh {
+      height: 46px; background: var(--gold-pale); color: var(--dark); border: 1px solid var(--border);
+      border-radius: 3px; font-family: 'Jost', sans-serif; font-size: 11.5px; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-refresh:hover { background: #f0e6c8; }
+    .count-info { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 18px; }
+    .item {
+      background: var(--cream); border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px; transition: all 0.2s ease; display: flex; flex-direction: column;
+    }
+    .item:hover { border-color: var(--gold); box-shadow: 0 4px 12px rgba(184,146,42,0.15); transform: translateY(-3px); }
+    .item img { width: 100%; height: 260px; object-fit: cover; border-radius: 4px; background: var(--white); display: block; }
+    .item-info { padding: 12px 4px 4px; display: flex; flex-direction: column; gap: 6px; }
+    .code-badge {
+      background: var(--dark); color: var(--gold-light); padding: 4px 9px; border-radius: 3px;
+      font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; width: fit-content;
+    }
+    .price { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; color: var(--dark); line-height: 1; }
+    .meta { font-size: 11.5px; color: var(--text-muted); }
+    .empty-msg { grid-column: 1 / -1; text-align: center; padding: 30px; color: var(--text-muted); font-size: 14px; }
+
+    /* TOAST */
+    .toast {
+      display: none; margin: 16px 40px 0; padding: 14px 18px; border-radius: 3px;
+      font-size: 13px; line-height: 1.5;
+    }
+    .toast.success { display: block; background: #f0faf4; border: 1px solid #9ad6b0; color: #1e6640; }
+    .toast.error   { display: block; background: #fdf2f2; border: 1px solid #f5b7b7; color: #9b2222; }
+
+    /* FOOTER */
+    .footer {
+      padding: 18px 40px 28px; border-top: 1px solid var(--border); text-align: center;
+      font-size: 12px; color: var(--text-muted); line-height: 1.5;
+    }
+    .footer strong { color: var(--gold); font-weight: 600; }
+    .website-link {
+      display: inline-block; margin-top: 10px; font-size: 13.5px; font-weight: 600;
+      color: var(--gold); text-decoration: none; letter-spacing: 0.05em; transition: color 0.2s;
+    }
+    .website-link:hover { color: var(--dark); }
+
+    @media (max-width: 520px) {
+      body { padding: 20px 10px 50px; }
+      .header, .form-body, .dash-body, .footer { padding-left: 22px; padding-right: 22px; }
+      .toast { margin-left: 22px; margin-right: 22px; }
+      .header-title { font-size: 26px; }
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .item img { height: 190px; }
+    }
+  </style>
+</head>
+<body>
+<div class="card" id="mainCard">
+  <div class="top-bar"></div>
+
+  <div class="header">
+    <img
+      src="https://www.nagarmal.com/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo.2bc542ae.png&w=256&q=75"
+      alt="Nagarmal Sheonarain Private Limited Logo" class="logo-img"
+      onerror="this.style.display='none';" />
+    <p class="header-eyebrow">Nagarmal Sheonarain Private Limited</p>
+    <p class="header-tagline">Complete Family Apparels Store</p>
+    <h1 class="header-title" id="pageTitle">Outfit Entry</h1>
+    <p class="header-sub" id="pageSub">Outfit ki photo aur price yahan daaliye.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('entryTab', this)">Data Entry</button>
+    <button class="tab-btn" onclick="switchTab('dashboardTab', this)">Dashboard</button>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- TAB 1: DATA ENTRY -->
+  <div id="entryTab" class="tab-content active">
+    <form id="masterForm" class="form-body">
+
+      <div class="field">
+        <label class="main-label" for="commonImage">Outfit Picture <span class="req">*</span></label>
+        <input type="file" id="commonImage" accept="image/*" required onchange="previewFile()" />
+        <img id="imgPreview" class="image-preview" alt="Preview" />
+      </div>
+
+      <div class="field">
+        <label class="main-label" for="outfitPrice">Outfit Price <span class="req">*</span></label>
+        <div class="price-wrap">
+          <span class="price-prefix">₹</span>
+          <input type="number" id="outfitPrice" placeholder="E.g. 999" min="0" step="0.01" required />
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">Save Outfit</button>
+    </form>
+  </div>
+
+  <!-- TAB 2: DASHBOARD -->
+  <div id="dashboardTab" class="tab-content">
+    <div class="dash-body">
+      <div class="filters-bar">
+        <div class="filter-field"><label>Min Price</label><input type="number" id="filterMin" placeholder="e.g. 500" oninput="renderDashboard()" /></div>
+        <div class="filter-field"><label>Max Price</label><input type="number" id="filterMax" placeholder="e.g. 1500" oninput="renderDashboard()" /></div>
+        <div class="filter-field"><label>From Date</label><input type="date" id="filterStart" onchange="renderDashboard()" /></div>
+        <div class="filter-field"><label>To Date</label><input type="date" id="filterEnd" onchange="renderDashboard()" /></div>
+        <button type="button" class="btn-refresh" onclick="loadDashboardData()">&#8635; Refresh</button>
+      </div>
+      <div class="count-info" id="countInfo"></div>
+      <div id="dashboardView" class="grid"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Your data is safe with <strong>Nagarmal Sheonarain Private Limited</strong>.
+    <br>
+    <a href="https://nagarmal.com/" target="_blank" class="website-link">Visit: www.nagarmal.com</a>
+  </div>
+</div>
+
+<script>
+  //   const API_URL = "https://script.google.com/macros/s/AKfycbyuX1dCNs7lDoJ90OGVtgsg-qqXlpdWjFNiaa_hbcfaMmOHWuR7-cmfoDoAju71B08fEQ/exec";
+
+  const toastEl = document.getElementById("toast");
+  let globalData = [];
+  let base64FileString = "";
+  let uploadFileName = "";
+  let uploadFileType = "image/jpeg";
+
+  function showToast(msg, type) {
+    toastEl.className = "toast " + type;
+    toastEl.textContent = msg;
+    toastEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    setTimeout(() => { toastEl.className = "toast"; }, 6000);
+  }
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+
+    const card = document.getElementById('mainCard');
+    if (tabId === 'dashboardTab') {
+      card.classList.add('wide');
+      document.getElementById('pageTitle').textContent = 'Outfit Dashboard';
+      document.getElementById('pageSub').textContent = 'Sabhi outfits ki entries yahan dekhiye.';
+      if (globalData.length === 0) loadDashboardData();
+    } else {
+      card.classList.remove('wide');
+      document.getElementById('pageTitle').textContent = 'Outfit Entry';
+      document.getElementById('pageSub').textContent = 'Outfit ki photo aur price yahan daaliye.';
+    }
+  }
+
+  /* Image resize + compress (fast upload) */
+  function previewFile() {
+    const file = document.getElementById('commonImage').files[0];
+    const preview = document.getElementById('imgPreview');
+    if (!file) { preview.style.display = 'none'; base64FileString = ""; return; }
+
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("⚠️ File 10MB se badi hai.", "error");
+      document.getElementById('commonImage').value = "";
+      preview.style.display = 'none'; return;
+    }
+
+    uploadFileName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+    uploadFileType = "image/jpeg";
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        const MAX = 1200;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          const r = Math.min(MAX / w, MAX / h);
+          w = Math.round(w * r); h = Math.round(h * r);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        preview.src = dataUrl;
+        preview.style.display = 'block';
+        base64FileString = dataUrl.split(',')[1];
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.getElementById('masterForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    if (API_URL.indexOf("PASTE_") === 0) { showToast("⚠️ Pehle index.html me API_URL paste karo.", "error"); return; }
+    if (!base64FileString) { showToast("⚠️ Pehle outfit ki image upload karo.", "error"); return; }
+
+    const price = document.getElementById('outfitPrice').value;
+    if (!price) { showToast("⚠️ Price daalo.", "error"); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Saving…';
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        // text/plain => CORS preflight avoid (Apps Script ke liye zaroori)
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          fileBase64: base64FileString,
+          fileName: uploadFileName,
+          fileType: uploadFileType,
+          price: price
+        })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        showToast("🎉 " + result.message, "success");
+        this.reset();
+        document.getElementById('imgPreview').style.display = 'none';
+        base64FileString = "";
+        loadDashboardData();
+      } else {
+        showToast("❌ " + result.message, "error");
+      }
+    } catch (err) {
+      showToast("❌ Failed: " + err.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "Save Outfit";
+    }
+  });
+
+  async function loadDashboardData() {
+    const container = document.getElementById('dashboardView');
+    container.innerHTML = '<div class="empty-msg"><span class="spinner dark"></span>Fetching records…</div>';
+    try {
+      const res = await fetch(API_URL);
+      const result = await res.json();
+      globalData = result.success ? result.data : [];
+      if (!result.success) showToast("❌ " + result.message, "error");
+    } catch (err) {
+      globalData = [];
+      showToast("❌ Data load nahi hua: " + err.message, "error");
+    }
+    renderDashboard();
+  }
+
+  function renderDashboard() {
+    const container = document.getElementById('dashboardView');
+    const minV = document.getElementById('filterMin').value;
+    const maxV = document.getElementById('filterMax').value;
+    const sd = document.getElementById('filterStart').value;
+    const ed = document.getElementById('filterEnd').value;
+
+    const min = minV ? parseFloat(minV) : 0;
+    const max = maxV ? parseFloat(maxV) : Infinity;
+    const start = sd ? new Date(sd + "T00:00:00").getTime() : 0;
+    const end = ed ? new Date(ed + "T23:59:59").getTime() : Infinity;
+
+    const rows = globalData.filter(r => {
+      const p = parseFloat(r.price) || 0;
+      return p >= min && p <= max && r.timestamp >= start && r.timestamp <= end;
+    });
+
+    document.getElementById('countInfo').textContent = rows.length + " entries";
+
+    if (rows.length === 0) {
+      container.innerHTML = '<div class="empty-msg">Koi entry nahi mili.</div>';
+      return;
+    }
+
+    container.innerHTML = rows.map(r => {
+      const d = new Date(r.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      return `
+        <div class="item">
+          <img src="${r.imageLink}" alt="Outfit" loading="lazy"
+               onerror="this.src='https://via.placeholder.com/250x350?text=Image+Unavailable'">
+          <div class="item-info">
+            <div class="code-badge">${r.uniqueId}</div>
+            <div class="price">₹${r.price}</div>
+            <div class="meta">${d}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+</script>
+
+</body>
+</html>
